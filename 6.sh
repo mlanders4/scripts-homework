@@ -21,13 +21,14 @@ awk 'NF' | \
 sed 's/[^a-zA-Z0-9]/\n/g' | \
 # Convert all uppercase letters to lowercase
 tr '[:upper:]' '[:lower:]' | \
-# Sort words alphabetically
+# Sort words alphabetically (only needed for counting purposes)
 sort | \
 # Count unique occurrences
 uniq -c | \
 # Sort by frequency in descending order
-sort -hr | \
+sort -nr | \
 # Extract only the words (not their counts)
 awk '{print $2}' | \
 # Show the top 25 most frequent words
 head -n 25
+
