@@ -31,4 +31,3 @@ sort -nr | \
 awk '{print $2}' | \
 # Show the top 25 most frequent words
 head -n 25
-
