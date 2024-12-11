@@ -1,25 +1,12 @@
 #!/bin/bash
 
-# Check if the file path is provided
-if [[ -z $1 ]]; then
-  echo "Usage: $0 <file-path>"
-  exit 1
-fi
+# File path to short-rockyou.txt
+file="$1"
 
-file=$1
-
-# Match "pie" case-insensitively and sum the first column (assuming it's numeric)
-total=$(grep -i "pie" "$file" | awk '{if ($1 ~ /^[0-9]+$/) sum += $1} END {print sum}')
-unique=$(grep -i "pie" "$file" | wc -l)
-
-# Calculate average
-if [[ $unique -ne 0 && $total -gt 0 ]]; then
-  average=$(echo "scale=5; $total / $unique" | bc)
-else
-  average=0
-fi
-
-# Output results
-echo "Total: $total"
-echo "Unique: $unique"
-printf "Average: %.5f\n" "$average"
+# Use grep to find lines containing 'pie' and pipe them to awk for further processing
+grep 'pie' "$file" | awk '{total+=$1; unique[$2]++} END { 
+    # Calculate total, unique passwords and the average
+    print "Total : " total
+    print "Unique : " length(unique)
+    print "Average : " total/length(unique)
+}'
