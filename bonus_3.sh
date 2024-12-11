@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ -z $1 || -z $2 ]]; then
+if [[ -z $1 ]]; then
   echo "Usage: $0 <file-path> <pattern>"
   exit 1
 fi
@@ -8,9 +8,15 @@ fi
 file=$1
 pattern=$2
 
-# Match exact pattern with case sensitivity
-total=$(grep -w "$pattern" "$file" | awk '{sum += $1} END {print sum}')
-unique=$(grep -w "$pattern" "$file" | wc -l)
+# If no pattern is provided, calculate for all passwords
+if [[ -z $pattern ]]; then
+  total=$(awk '{sum += $1} END {print sum}' "$file")
+  unique=$(wc -l < "$file")
+else
+  # Match pattern case-insensitively and robustly
+  total=$(grep -i "$pattern" "$file" | awk '{sum += $1} END {print sum}')
+  unique=$(grep -i "$pattern" "$file" | wc -l)
+fi
 
 # Calculate average
 if [[ $unique -ne 0 ]]; then
