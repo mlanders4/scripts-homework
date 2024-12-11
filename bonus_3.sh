@@ -26,16 +26,6 @@ else
   fi
 fi
 
-# Handle cases with no matches or no valid numbers
-if [[ $unique -ne 0 && $total -gt 0 ]]; then
-  # Calculate average and round to 5 decimal places
-  average=$(echo "scale=5; $total / $unique" | bc)
-else
-  total=0
-  unique=0
-  average=0
-fi
-
 # Output results
 echo "Pattern: \"$pattern\""
 echo "Total: $total"
