@@ -10,6 +10,27 @@ fi
 file="$1"
 pattern="$2"
 
+# If the pattern is empty, treat it as an empty string and process all lines
+if [ -z "$pattern" ]; then
+    echo "Pattern: \"\""
+    total=0
+    unique_count=0
+    # Count all occurrences from the first column (instances) and unique passwords in the second column
+    awk '{total += $1; unique[$2]++} END { 
+        if (length(unique) > 0) {
+            print "Total:", total
+            print "Unique:", length(unique)
+            avg = total / length(unique)
+            printf "Average: %.4f\n", avg
+        } else {
+            print "Total: 0"
+            print "Unique: 0"
+            print "Average: 0"
+        }
+    }' "$file"
+    exit 0
+fi
+
 # Search for the pattern in the file and process the results
 echo "Pattern: \"$pattern\""
 
