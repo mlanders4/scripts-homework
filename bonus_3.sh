@@ -1,61 +1,44 @@
 #!/bin/bash
 
-# Check if a pattern is provided as an argument
-if [ -z "$2" ]; then
-    echo "Usage: $0 <file-path> <pattern>"
-    exit 1
+# Ensure that the file path is provided
+if [[ -z $1 ]]; then
+  echo "Usage: $0 <file-path> <pattern>"
+  exit 1
 fi
 
-# File path and pattern to search for
-file="$1"
-pattern="$2"
+file=$1
+pattern=$2
 
-# If the pattern is empty, treat it as an empty string and process all lines
-if [ -z "$pattern" ]; then
-    echo "Pattern: \"\""
-    total=0
-    unique_count=0
-    # Count all occurrences from the first column (instances) and unique passwords in the second column
-    awk '{total += $1; unique[$2]++} END { 
-        if (length(unique) > 0) {
-            print "Total:", total
-            print "Unique:", length(unique)
-            avg = total / length(unique)
-            printf "Average: %.4f\n", avg
-        } else {
-            print "Total: 0"
-            print "Unique: 0"
-            print "Average: 0"
-        }
-    }' "$file"
-    exit 0
+# If no pattern is provided, calculate for all lines
+if [[ -z $pattern ]]; then
+  echo "Pattern: \"\""
+  total=$(awk '{if ($1 ~ /^[0-9]+$/) sum += $1} END {print sum}' "$file")
+  unique=$(wc -l < "$file")
+else
+  # If a pattern is provided, check for case-insensitive matching
+  if [[ $pattern =~ [A-Z] ]]; then
+    # Pattern contains uppercase, so we match case-sensitively
+    total=$(grep -F "$pattern" "$file" | awk '{if ($1 ~ /^[0-9]+$/) sum += $1} END {print sum}')
+    unique=$(grep -F "$pattern" "$file" | wc -l)
+  else
+    # Otherwise, match case-insensitively
+    total=$(grep -i "$pattern" "$file" | awk '{if ($1 ~ /^[0-9]+$/) sum += $1} END {print sum}')
+    unique=$(grep -i "$pattern" "$file" | wc -l)
+  fi
 fi
 
-# Search for the pattern in the file and process the results
+# Handle cases with no matches or no valid numbers
+if [[ $unique -ne 0 && $total -gt 0 ]]; then
+  # Calculate average and round to 5 decimal places
+  average=$(echo "scale=5; $total / $unique" | bc)
+else
+  total=0
+  unique=0
+  average=0
+fi
+
+# Output results
 echo "Pattern: \"$pattern\""
-
-# Use grep to find lines containing the pattern and pipe them to awk for further processing
-grep "$pattern" "$file" | awk -v pattern="$pattern" '
-    {
-        # For each matching line, increment total count by first column value (instances)
-        total += $1
-        
-        # Track unique passwords in the second column
-        unique[$2]++
-    }
-    END {
-        # Calculate unique passwords count
-        unique_count = length(unique)
-
-        # If we have unique passwords, calculate average
-        if (unique_count > 0) {
-            avg = total / unique_count
-            printf "Total: %d\n", total
-            printf "Unique: %d\n", unique_count
-            printf "Average: %.4f\n", avg
-        } else {
-            print "Total: 0"
-            print "Unique: 0"
-            print "Average: 0"
-        }
-    }'
+echo "Total: $total"
+echo "Unique: $unique"
+printf "Average: %.5f\n" "$average"
