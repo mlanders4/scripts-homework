@@ -1,34 +1,37 @@
 #!/bin/bash
 
-# Ensure two arguments are provided: file path and pattern
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <file_path> <pattern>"
+# Check if a pattern is provided as an argument
+if [ -z "$2" ]; then
+    echo "Usage: $0 <file-path> <pattern>"
     exit 1
 fi
 
-file_path=$1
-pattern=$2
+# File path and pattern to search for
+file="$1"
+pattern="$2"
 
-# Find all instances of the pattern and store them in a variable
-matches=$(grep -o "$pattern" "$file_path" | wc -l)
+# Search the file for the pattern and store the result
+results=$(grep -o "$pattern" "$file")
 
-# Find all unique lines containing the pattern
-unique_matches=$(grep -o "$pattern" "$file_path" | sort | uniq | wc -l)
-
-# If no matches are found, set total, unique, and average to 0
-if [ "$matches" -eq 0 ]; then
-    total=0
-    unique=0
-    average=0
+# If no results are found, print 0 for all statistics
+if [ -z "$results" ]; then
+    echo "Pattern : \"$pattern\""
+    echo "Total : 0"
+    echo "Unique : 0"
+    echo "Average : 0"
 else
-    total=$matches
-    unique=$unique_matches
-    # Calculate average occurrences per unique line
-    average=$(echo "$total / $unique" | bc -l)
+    # Use grep to find lines containing the pattern and pipe them to awk for further processing
+    echo "Pattern : \"$pattern\""
+    grep "$pattern" "$file" | awk -v pattern="$pattern" '{total+=$1; unique[$2]++} END { 
+        # Calculate total, unique passwords, and the average
+        if (length(unique) > 0) {
+            print "Total : " total
+            print "Unique : " length(unique)
+            print "Average : " total/length(unique)
+        } else {
+            print "Total : 0"
+            print "Unique : 0"
+            print "Average : 0"
+        }
+    }'
 fi
-
-# Output the results
-echo "Pattern: \"$pattern\""
-echo "Total: $total"
-echo "Unique: $unique"
-echo "Average: $average"
