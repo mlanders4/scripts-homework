@@ -7,9 +7,9 @@ fi
 
 file=$1
 
-# Ensure exact matches for "pie" (case-sensitive)
-total=$(grep -w "pie" "$file" | awk '{sum += $1} END {print sum}')
-unique=$(grep -w "pie" "$file" | wc -l)
+# Match "pie" case-insensitively
+total=$(grep -i "pie" "$file" | awk '{sum += $1} END {print sum}')
+unique=$(grep -i "pie" "$file" | wc -l)
 
 # Calculate average
 if [[ $unique -ne 0 ]]; then
