@@ -10,35 +10,27 @@ fi
 file="$1"
 pattern="$2"
 
-# Check if the pattern is empty
-if [ -z "$pattern" ]; then
-    echo "Pattern: \"\""
-    echo "Total: 0"
-    echo "Unique: 0"
-    echo "Average: 0"
-    exit 0
-fi
+# Search for the pattern in the file and process the results
+echo "Pattern: \"$pattern\""
 
-# Search the file for the pattern and store the result
-results=$(grep -o "$pattern" "$file")
+# Use grep to find lines containing the pattern and pipe them to awk for further processing
+grep "$pattern" "$file" | awk -v pattern="$pattern" '
+    {
+        # For each matching line, increment total count by first column value (instances)
+        total += $1
+        
+        # Track unique passwords in the second column
+        unique[$2]++
+    }
+    END {
+        # Calculate unique passwords count
+        unique_count = length(unique)
 
-# If no results are found, print 0 for all statistics
-if [ -z "$results" ]; then
-    echo "Pattern: \"$pattern\""
-    echo "Total: 0"
-    echo "Unique: 0"
-    echo "Average: 0"
-else
-    # Use grep to find lines containing the pattern and pipe them to awk for further processing
-    echo "Pattern: \"$pattern\""
-    grep "$pattern" "$file" | awk -v pattern="$pattern" '{
-        total+=$1; unique[$2]++
-    } END { 
-        # Calculate total, unique passwords, and the average
-        if (length(unique) > 0) {
-            avg = total / length(unique)
+        # If we have unique passwords, calculate average
+        if (unique_count > 0) {
+            avg = total / unique_count
             printf "Total: %d\n", total
-            printf "Unique: %d\n", length(unique)
+            printf "Unique: %d\n", unique_count
             printf "Average: %.4f\n", avg
         } else {
             print "Total: 0"
@@ -46,4 +38,3 @@ else
             print "Average: 0"
         }
     }'
-fi
